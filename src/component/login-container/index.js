@@ -7,12 +7,16 @@ import Button from "component/common/Button";
 import { Formik } from "formik";
 import { loginInitialValues, loginSchema } from "./login-schema";
 import { useRouter } from "next/router";
+import { useDispatch } from "react-redux";
+import { setUser } from "redux/auth-reducer";
 
 const LoginContainer = () => {
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const onLogin = (e) => {
     router.push("/home");
+    dispatch(setUser());
   };
 
   return (
@@ -59,10 +63,11 @@ const LoginContainer = () => {
                   placeholder="Password"
                   onChange={handleChange}
                   onBlur={handleBlur}
+                  error={errors.password && touched.password && errors.password}
                 />
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  // disabled={isSubmitting}
                   margin="40px 0"
                   title={"Login"}
                 />

@@ -20,6 +20,7 @@ const Input = styled.input`
   border: 0;
   padding: 0 15px;
   outline: 0;
+  color: ${Colors.black};
 `;
 
 const ErrorText = styled.span`

@@ -3,6 +3,7 @@
   border-right: 1px solid var(--gray);
   border-radius: 0px;
   padding: 20px;
+  padding-top: 40px;
 }
 
 .menu-link {
@@ -10,9 +11,39 @@
   border-radius: 5px;
   display: flex;
   margin-bottom: 10px;
-  padding: 10px 0px 0px 10px;
+  padding: 13px 0px 0px 10px;
+  color: #000;
 }
 
 .active-menu {
   background-color: var(--gray);
+}
+
+.dashboard-main {
+  min-height: 100vh;
+  background-color: #fbfbfb;
+  position: fixed;
+  width: 100%;
+}
+
+.dashboard-container {
+  background-color: #fbfbfb;
+  width: 100%;
+  height: calc(100vh - 80px);
+  padding: 15px;
+}
+
+.dropdown {
+  width: 15%;
+  float: right;
+}
+
+@media only screen and (max-width: 768px) {
+  .menu {
+    visibility: hidden;
+  }
+
+  .dropdown {
+    width: 45%;
+  }
 }
