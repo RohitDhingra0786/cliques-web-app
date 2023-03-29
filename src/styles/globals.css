@@ -112,3 +112,7 @@ a {
   min-height: 100vh;
   background: white;
 }
+
+img {
+  background: transparent;
+}

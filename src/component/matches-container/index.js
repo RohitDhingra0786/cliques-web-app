@@ -86,7 +86,7 @@ const InfoContainer = styled.div`
 `;
 
 const ChatButton = styled.button`
-  background-image: linear-gradient(#a46aeb, #4ab1e7);
+  background-image: linear-gradient(to  right,#a46aeb, #4ab1e7);
   margin-top: 10px;
   height: 35px;
   width: 60%;

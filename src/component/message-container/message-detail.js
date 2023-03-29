@@ -1,14 +1,45 @@
-import styled from "styled-components";
-import { Colors } from "theme/colors";
 import MessageHeader from "./message-header";
+import { useRef } from "react";
+import ImageIcon from "assets/images/image.png";
+import Image from "next/image";
+import SendIcon from "assets/images/send.png";
+import { ChatWrapper, Container, FileIcon, Form, MessageBox } from "./styles";
+import Messages from "./messages";
 
 const MessageDetail = () => {
+  const fileRef = useRef();
+
+  const rendetImageIcon = () => {
+    return (
+      <FileIcon>
+        <input
+          multiple
+          accept="image/*"
+          style={{ display: "none" }}
+          type={"file"}
+          // onChange={this.fileSelectedHandler}
+
+          ref={fileRef}
+        />
+
+        <Image
+          alt="file-icon"
+          onClick={() => fileRef?.current?.click()}
+          src={ImageIcon}
+          height={20}
+          width={20}
+          style={{ background: "transparent", cursor: "pointer" }}
+        />
+      </FileIcon>
+    );
+  };
+
   return (
     <Container>
       <MessageHeader />
 
       <div className="wrapper">
-        <ChatWrapper>Hi</ChatWrapper>
+        <Messages />
 
         <Form>
           <div className="input-div">
@@ -17,16 +48,13 @@ const MessageDetail = () => {
             <label for="file">
               <span class="fa fa-edit edit-icon"> </span>
             </label>
-            {/* <input type={"file"} /> */}
 
-            {/* <label for="file">
-              <span class="fa fa-edit edit-icon"> </span>
-            </label>
-
-            <input type="file" id="file" style="display: none;" /> */}
+            {rendetImageIcon()}
           </div>
 
-          {/* <button>Test</button> */}
+          <button>
+            <Image src={SendIcon} height={16} width={16} />
+          </button>
         </Form>
       </div>
     </Container>
@@ -34,46 +62,3 @@ const MessageDetail = () => {
 };
 
 export default MessageDetail;
-
-const Container = styled.div`
-  width: 100%;
-  height: 100%;
-
-  .wrapper {
-    display: flex;
-    background-color: #fbfbfb;
-    height: 100%;
-    justify-content: space-between;
-    flex-direction: column;
-  }
-`;
-
-const ChatWrapper = styled.section`
-  background-color: transparent;
-`;
-
-const Form = styled.form`
-  height: 200px;
-  background-color: white;
-  display: flex;
-  justify-content: center;
-
-  .input-div {
-    height: 50px;
-    width: 80%;
-    background-color: rgb(246, 246, 246);
-    border-radius: 10px;
-    margin-top: 40px;
-    padding: 0 20px;
-    display: flex;
-  }
-
-  input {
-    height: 100%;
-    width: 100%;
-    outline: 0;
-    border: 0;
-    color: #000;
-    background-color: transparent;
-  }
-`;
