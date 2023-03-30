@@ -3,8 +3,90 @@ import CreateIcon from "assets/images/edit.png";
 import Image from "next/image";
 import UserImg from "assets/images/user.png";
 import { Colors } from "theme/colors";
+import { getImageUrl } from "utils";
+import moment from "moment";
+import { BsFileEarmarkMusicFill, BsFillImageFill } from "react-icons/bs";
+import { useSelector } from "react-redux";
+import {
+  chatRoomIdUpdate,
+  msg_update_read_status,
+  UpdateUserInboxMe,
+} from "services/message";
+import { useRouter } from "next/router";
 
-const ListContainer = () => {
+const ListContainer = ({ setSelectedChat }) => {
+  const router = useRouter();
+
+  const { inboxList, allUserList } = useSelector((state) => state.message);
+  const { user_id } = useSelector((state) => state.auth);
+
+  console.log("inboxList", inboxList);
+
+  const onCardPress = (item) => {
+    // chatRoomIdUpdate(
+    //   user_id,
+    //   item?.type == "group" ? item?.group_id : item?.user_id
+    // );
+    // if (item?.count > 0 && item?.type !== "group") {
+    //   onPressChat(item);
+    // } else {
+    //   UpdateUserInboxMe("u_" + user_id, item?.group_id, {
+    //     count: 0,
+    //   });
+    // }
+
+    setSelectedChat({ details: item, other_user_id: item?.user_id });
+    // navigate("Conversation", {
+    //   details: data?.item,
+    //   inboxList: inboxList,
+    //   other_user_id: data?.item?.user_id,
+    // });
+  };
+
+  const onPressChat = (detail) => {
+    const user_id_send = "u_" + user_id;
+    const inbox_id_me = "u_" + detail?.user_id;
+    UpdateUserInboxMe(user_id_send, inbox_id_me, {
+      count: 0,
+    });
+    msg_update_read_status(user_id, detail?.user_id, allUserList);
+  };
+
+  const renderLastMsg = (e) => (
+    <BottomDiv>
+      <p className="last-msg">
+        {e?.messageType == "audio" ||
+        e?.lastMsgType == "audio" ||
+        e?.lastMessageType == "audio" ? (
+          <BsFileEarmarkMusicFill size={10} color={Colors.primary} />
+        ) : e?.messageType == "image" ||
+          e?.lastMsgType == "image" ||
+          e?.lastMessageType == "image" ? (
+          <BsFillImageFill size={10} color={Colors.primary} />
+        ) : (
+          ""
+        )}
+
+        {e?.type === "group"
+          ? e?.messageType == "image" || e?.lastMsgType == "image"
+            ? "Photo"
+            : e?.messageType == "audio" || e?.lastMsgType == "audio"
+            ? "Voice Note"
+            : e?.lastMsgType == "text" || e?.lastMsgType == ""
+            ? e?.lastMsg
+            : ""
+          : e?.lastMessageType == "text" || e?.lastMessageType == ""
+          ? e?.lastMsg
+          : e?.lastMessageType == "audio" || e?.lastMessageType == "audio"
+          ? "Voice Note"
+          : "Photo"}
+      </p>
+
+      {/* Count */}
+      <Count isHide={!e?.count}>{e?.count}</Count>
+    </BottomDiv>
+  );
+
   return (
     <Container>
       <TopContainer>
@@ -13,19 +95,29 @@ const ListContainer = () => {
       </TopContainer>
 
       <div className="list-container">
-        {[1, 2, 4, 5, 6, 7, 5, 6, 7, 88].map((e, i) => (
-          <Card key={i}>
-            <Image alt="profile-icon" src={UserImg} height={35} width={35} />
+        {inboxList?.map((e, i) => {
+          return (
+            <Card onClick={() => onCardPress(e)} key={i}>
+              <Image
+                alt="profile-icon"
+                src={getImageUrl(e?.image) || UserImg}
+                height={35}
+                width={35}
+                style={{ borderRadius: 35 / 2 }}
+              />
 
-            <div className="card-info">
-              <div className="info-div">
-                <label className="user-name">Rohit</label>
-                <span className="time-text">4:30PM</span>
+              <div className="card-info">
+                <div className="info-div">
+                  <label className="user-name">{e?.name}</label>
+                  <span className="time-text">
+                    {moment(e?.lastMsgTime).fromNow()}
+                  </span>
+                </div>
+                {renderLastMsg(e)}
               </div>
-              <p className="last-msg">Hi New message</p>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
     </Container>
   );
@@ -40,7 +132,7 @@ const Container = styled.div`
   border-right: 1px solid #ddd;
   .list-container {
     overflow-y: scroll;
-    height: 100%;
+    height: 90%;
     padding: 0 25px;
     margin-top: 10px;
   }
@@ -91,5 +183,29 @@ const Card = styled.div`
     margin-top: 8px;
     font-weight: 400;
     color: #000;
+
+    * {
+      margin-right: 5px;
+    }
   }
+`;
+
+const BottomDiv = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2px;
+`;
+
+const Count = styled.div`
+  height: 16px;
+  width: 16px;
+  border-radius: 10px;
+  background-color: ${Colors.primary};
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  visibility: ${(props) => (props?.isHide ? "hidden" : "visible")};
 `;

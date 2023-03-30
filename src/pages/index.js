@@ -3,14 +3,26 @@ import Head from "next/head";
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import styles from "styles/Home.module.css";
-import Router from "next/router";
+import { useRouter } from "next/router";
+import { useSelector } from "react-redux";
+import useMessages from "hooks/use-messages";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
+  const router = useRouter();
+
+  const { isUser } = useSelector((state) => state.auth);
+
   useEffect(() => {
-    Router.push("login");
-  }, []);
+    checkIsUserExist();
+  }, [isUser]);
+
+  const checkIsUserExist = () => {
+    if (isUser) {
+      router.replace("/home");
+    }
+  };
 
   return (
     <>

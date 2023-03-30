@@ -14,17 +14,17 @@ export default function App({ Component, pageProps }) {
     auth: { isUser },
   } = store.getState();
 
-  useEffect(() => {
-    setTimeout(() => {
-      checkIsUserExist();
-    }, 200);
-  }, []);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     checkIsUserExist();
+  //   }, 200);
+  // }, []);
 
-  const checkIsUserExist = () => {
-    if (isUser && router?.pathname === "/login") {
-      router.replace("/home");
-    }
-  };
+  // const checkIsUserExist = () => {
+  //   if (isUser && router?.pathname === "/login") {
+  //     router.replace("/home");
+  //   }
+  // };
 
   return (
     <>

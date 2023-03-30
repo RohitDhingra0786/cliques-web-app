@@ -5,9 +5,42 @@ import Image from "next/image";
 import SendIcon from "assets/images/send.png";
 import { ChatWrapper, Container, FileIcon, Form, MessageBox } from "./styles";
 import Messages from "./messages";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { limitToLast, query, ref, onValue } from "firebase/database";
+import { db } from "hoc/firebase";
+import { setCurrentConversationList } from "redux/message-reducer";
 
-const MessageDetail = () => {
+const MessageDetail = ({ data }) => {
+  const { user_id } = useSelector((state) => state.auth);
+  const { messageLimit, conversationList } = useSelector(
+    (state) => state.message
+  );
+  const dispatch = useDispatch();
+
+  console.log({ user_id });
+
+  // Ref
   const fileRef = useRef();
+
+  useEffect(() => {
+    const url =
+      data?.details?.type == "group"
+        ? `/message/${data?.details?.group_id}`
+        : `/message/u_${user_id}__u_${data?.details?.user_id}`;
+
+    console.log({ data });
+
+    console.log({ url });
+
+    const recentMessages = query(ref(db, url), limitToLast(messageLimit));
+
+    onValue(recentMessages, (snapshot) => {
+      dispatch(
+        setCurrentConversationList(snapshot.exists() ? snapshot.val() : {})
+      );
+    });
+  }, [data]);
 
   const rendetImageIcon = () => {
     return (
@@ -34,12 +67,14 @@ const MessageDetail = () => {
     );
   };
 
+  console.log({ conversationList });
+
   return (
     <Container>
       <MessageHeader />
 
       <div className="wrapper">
-        <Messages />
+        <Messages list={conversationList || []} />
 
         <Form>
           <div className="input-div">

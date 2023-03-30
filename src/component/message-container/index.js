@@ -1,12 +1,16 @@
+import useMessages from "hooks/use-messages";
+import { useState } from "react";
 import styled from "styled-components";
 import ListContainer from "./list-container";
 import MessageDetail from "./message-detail";
 
 const MessageContainer = () => {
+  const [selectedChat, setSelectedChat] = useState(null);
+
   return (
     <Container>
-      <ListContainer />
-      <MessageDetail />
+      <ListContainer setSelectedChat={setSelectedChat} />
+      {selectedChat ? <MessageDetail data={selectedChat} /> : null}
     </Container>
   );
 };

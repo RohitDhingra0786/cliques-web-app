@@ -18,6 +18,8 @@ export const ChatWrapper = styled.section`
   background-color: transparent;
   width: 100%;
   padding: 10px;
+  overflow-y: scroll;
+  max-height: 70%;
 `;
 
 export const Form = styled.form`
