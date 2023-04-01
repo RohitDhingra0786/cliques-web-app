@@ -1,6 +1,5 @@
-// import { client } from "services";
-// import database from "@react-native-firebase/database";
-import { onValue, ref, update } from "firebase/database";
+import { client } from "services";
+import { onValue, push, ref, update } from "firebase/database";
 import { db } from "hoc/firebase";
 import { setAllUserList } from "redux/message-reducer";
 import store from "redux/store";
@@ -40,10 +39,11 @@ import store from "redux/store";
 // };
 
 export const SendUserMessage = (messageId, messageJson) => {
-  database()
-    .ref("message" + "/" + messageId)
-    .push()
-    .set(messageJson)
+  // database()
+  //   .ref("message" + "/" + messageId)
+  //   .push()
+  //   .
+  push(ref(db, "message" + "/" + messageId), messageJson)
     .then(function () {
       console.log("SendUserMessage succeeded.");
     })
@@ -53,9 +53,10 @@ export const SendUserMessage = (messageId, messageJson) => {
 };
 
 export const UpdateUserInboxOther = (id, otherId, jsonUserData2) => {
-  database()
-    .ref("users/" + id + "/myInbox/" + otherId)
-    .update(jsonUserData2)
+  // database()
+  //   .ref("users/" + id + "/myInbox/" + otherId)
+
+  update(ref(db, "users/" + id + "/myInbox/" + otherId), jsonUserData2)
     .then(function () {
       console.log("Update inbox succeeded of other.");
     })
@@ -268,6 +269,7 @@ export const chatRoomIdUpdate = (user_id, other_user_id) => {
 export const CreateUser = (id, jsonUserData, isForCreate) => {
   // database().ref("users/" + id);
 
+  console.log({ id });
   update(ref(db, "users/" + id), jsonUserData)
     .then(function (data) {
       console.log("CreateUser success. :: ", data);
@@ -318,9 +320,9 @@ export const firebaseUserCreateUpdatePlayerId = (user_id) => {
 };
 
 export const getAllUsersList = async () => (dispatch) => {
-  database()
-    .ref(`/users`)
-    .on("value", (snapshot) => {
+  onValue(
+    ref(db, "/users"),
+    (snapshot) => {
       const data = snapshot.val();
       let myList = [];
       Object.keys(data).forEach(function (key, index) {
@@ -332,7 +334,9 @@ export const getAllUsersList = async () => (dispatch) => {
       console.log("myList :: ", myList);
       dispatch(setAllUserList(myList));
       // getListOfInbox(myList);
-    });
+    },
+    { onlyOnce: true }
+  );
 };
 
 export const checkprevgroup = (user1, user2, user3, user4, allGroupsList) => {
@@ -380,9 +384,11 @@ export const checkprevgroup = (user1, user2, user3, user4, allGroupsList) => {
 
 export const CreateGroup = (id, jsonUserData, jsonUserDataMe, user_id) => {
   console.log("CreateGroup", jsonUserData);
-  database()
-    .ref("groups/" + id)
-    .update(jsonUserData)
+  // database()
+  //   .ref("groups/" + id)
+
+  //   .
+  update(ref(db, "groups/" + id), jsonUserData)
     .then(function () {
       console.log("Update inbox succeeded for create group");
 
@@ -507,10 +513,12 @@ export const firebaseUserDelete = async (userDetails) => {
 };
 
 export const SendUserMessageGroup = (messageId, messageJson) => {
-  database()
-    .ref("message" + "/" + messageId)
-    .push()
-    .set(messageJson)
+  // database()
+  //   .ref("message" + "/" + messageId)
+  //   .push()
+
+  //   .
+  push(ref(db, "message" + "/" + messageId), messageJson)
     .then(function () {
       console.log("Update inbox succeeded foe send message");
     })
@@ -585,9 +593,11 @@ export const addMemberToGroup = async (group_id, list) => {
 
 function CreateGroupMembers(id, jsonUserData) {
   console.log("CreateGroup", jsonUserData);
-  database()
-    .ref("groups/" + id + "/members/")
-    .update(jsonUserData)
+  // database()
+  //   .ref()
+  //   .
+
+  update(ref(db, "groups/" + id + "/members/"), jsonUserData)
     .then(function () {
       console.log("Update inbox succeeded for create group member");
     })

@@ -6,10 +6,8 @@ import {
   update,
 } from "firebase/database";
 import { db } from "hoc/firebase";
-import { useState } from "react";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setId } from "redux/auth-reducer";
 import {
   setAllGroupsList,
   setAllUserList,
@@ -18,23 +16,26 @@ import {
   setInboxList,
 } from "redux/message-reducer";
 
-var user_id = 125888;
+// var user_id = 125888;
 
 const useMessages = () => {
   const dispatch = useDispatch();
+  const { user_id } = useSelector((state) => state.auth);
   const { allUserList, inboxDetails, allGroupsList } = useSelector(
     (state) => state.message
   );
+
+  console.log({ inboxDetails });
 
   //   Db Refs
   let usersRef = ref(db, "users/");
   let gorupsRef = ref(db, "groups/");
 
   useEffect(() => {
-    handleUserList();
+    getAllUserList();
     handleOnlineOfflineStatus("true");
     handleGroupList();
-    getAllUserList();
+    handleUserList();
   }, []);
 
   const getAllUserList = async () => {
@@ -63,13 +64,33 @@ const useMessages = () => {
     onValue(usersRef, (snapshot) => {
       const listData = snapshot.val();
 
+      console.log("listData", listData);
+
       let myList = [];
       Object.keys(listData).forEach(function (key, index) {
         let value = listData[key];
         value.tempId = key;
         myList.push(value);
       });
-      // setAllUserList(myList);
+      // let newList = [];
+
+      // if (inboxDetails?.myInbox && Object.keys(inboxDetails?.myInbox)?.length) {
+      //   console.log("Yes enter", myList, inboxDetails);
+
+      //   let inboxArr = Object.keys(inboxDetails?.myInbox);
+
+      //   console.log({ inboxArr });
+
+      //   myList.forEach((e) => {
+      //     if (inboxArr.includes(e.tempId)) {
+      //       newList.push(e);
+      //     }
+      //   });
+
+      //   console.log({ newList });
+      //   // myList = myList.filter((e) => inboxArr.includes(e.tempId));
+      //   // console.log({ newMyList: myList });
+      // }
 
       dispatch(setAllUserList(myList));
       onChildAdded(usersRef, (snapshot) => {
@@ -86,7 +107,7 @@ const useMessages = () => {
         ) {
           myList = [...myList, addedData];
           dispatch(setAllUserList([...myList, addedData]));
-          // setAllUserList([...myList, addedData]);
+
           dispatch(updateReecentChat());
         }
       });
@@ -240,13 +261,14 @@ const useMessages = () => {
       }
     });
 
-    console.log({ myInboxList });
     dispatch(
       setInboxList(
         myInboxList.sort((x, y) => y.lastMsgTime - x.lastMsgTime) || []
       )
     );
   }, [allUserList, inboxDetails, allGroupsList]);
+
+  console.log({ allUserList });
 
   return {};
 };

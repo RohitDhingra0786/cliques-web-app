@@ -24,8 +24,15 @@ const messageSlice = createSlice({
     allGroupsList: [],
     messageLimit: 20,
     updateChat: true,
+    selectedChat: {
+      details: null,
+    },
   },
   reducers: {
+    setSelectedChat: (state, { payload }) => {
+      state.selectedChat = payload;
+    },
+
     updateReecentChat: (state, { payload }) => {
       state.updateChat = !state.updateChat;
     },
@@ -60,11 +67,9 @@ const messageSlice = createSlice({
         };
       });
 
-      state.conversationList = list
-        .sort(function (x, y) {
-          return x.timestamp - y.timestamp;
-        })
-        .reverse();
+      state.conversationList = list.sort(function (x, y) {
+        return x.timestamp - y.timestamp;
+      });
     },
     // Set UnView Message Count
     setUnviewMessageCount: (state, { payload }) => {
@@ -133,6 +138,7 @@ export const {
   resetMessages,
   setMessageLimit,
   updateReecentChat,
+  setSelectedChat,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;

@@ -6,16 +6,20 @@ import { Colors } from "theme/colors";
 import { getImageUrl } from "utils";
 import moment from "moment";
 import { BsFileEarmarkMusicFill, BsFillImageFill } from "react-icons/bs";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   chatRoomIdUpdate,
   msg_update_read_status,
   UpdateUserInboxMe,
 } from "services/message";
-import { useRouter } from "next/router";
+import {
+  setCurrentConversationList,
+  setMessageLimit,
+  setSelectedChat,
+} from "redux/message-reducer";
 
-const ListContainer = ({ setSelectedChat }) => {
-  const router = useRouter();
+const ListContainer = ({}) => {
+  const dispatch = useDispatch();
 
   const { inboxList, allUserList } = useSelector((state) => state.message);
   const { user_id } = useSelector((state) => state.auth);
@@ -23,24 +27,23 @@ const ListContainer = ({ setSelectedChat }) => {
   console.log("inboxList", inboxList);
 
   const onCardPress = (item) => {
-    // chatRoomIdUpdate(
-    //   user_id,
-    //   item?.type == "group" ? item?.group_id : item?.user_id
-    // );
-    // if (item?.count > 0 && item?.type !== "group") {
-    //   onPressChat(item);
-    // } else {
-    //   UpdateUserInboxMe("u_" + user_id, item?.group_id, {
-    //     count: 0,
-    //   });
-    // }
+    dispatch(setSelectedChat({ details: item, other_user_id: item?.user_id }));
 
-    setSelectedChat({ details: item, other_user_id: item?.user_id });
-    // navigate("Conversation", {
-    //   details: data?.item,
-    //   inboxList: inboxList,
-    //   other_user_id: data?.item?.user_id,
-    // });
+    dispatch(setCurrentConversationList([]));
+    dispatch(setMessageLimit(20));
+
+    if (item?.count > 0 && item?.type !== "group") {
+      onPressChat(item);
+    } else {
+      UpdateUserInboxMe("u_" + user_id, item?.group_id, {
+        count: 0,
+      });
+    }
+
+    chatRoomIdUpdate(
+      user_id,
+      item?.type == "group" ? item?.group_id : item?.user_id
+    );
   };
 
   const onPressChat = (detail) => {
@@ -87,6 +90,13 @@ const ListContainer = ({ setSelectedChat }) => {
     </BottomDiv>
   );
 
+  const renderGroupImage = (info) => {
+    let list = info?.membersList || [];
+    list = list.filter((e) => e.image);
+
+    return <></>;
+  };
+
   return (
     <Container>
       <TopContainer>
@@ -98,13 +108,19 @@ const ListContainer = ({ setSelectedChat }) => {
         {inboxList?.map((e, i) => {
           return (
             <Card onClick={() => onCardPress(e)} key={i}>
-              <Image
-                alt="profile-icon"
-                src={getImageUrl(e?.image) || UserImg}
-                height={35}
-                width={35}
-                style={{ borderRadius: 35 / 2 }}
-              />
+              {e?.type == "group" && e.hasOwnProperty("groupIcon") ? (
+                <GroupIcon>{e?.name?.slice(0, 2)}</GroupIcon>
+              ) : e?.type == "group" ? (
+                renderGroupImage(e)
+              ) : (
+                <Image
+                  alt="profile-icon"
+                  src={getImageUrl(e?.image) || UserImg}
+                  height={35}
+                  width={35}
+                  style={{ borderRadius: 35 / 2 }}
+                />
+              )}
 
               <div className="card-info">
                 <div className="info-div">
@@ -158,7 +174,7 @@ const Card = styled.div`
 
   .card-info {
     display: block;
-    width: 100%;
+    width: 90%;
     padding-left: 15px;
     margin-top: 4px;
   }
@@ -208,4 +224,16 @@ const Count = styled.div`
   align-items: center;
   font-size: 12px;
   visibility: ${(props) => (props?.isHide ? "hidden" : "visible")};
+`;
+
+const GroupIcon = styled.div`
+  height: 35px;
+  width: 35px;
+  border-radius: 50%;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  background-color: ${Colors.primary};
+  color: #fff;
+  font-size: 12px;
 `;

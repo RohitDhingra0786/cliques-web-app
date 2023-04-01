@@ -1,11 +1,12 @@
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import store, { persistor } from "redux/store";
-import { useEffect } from "react";
 import { useRouter } from "next/router";
 import DashboardLayout from "component/common/DashboardLayout";
+import { ToastContainer } from "react-toastify";
 import "styles/globals.css";
 import "styles/DashboardLayout.css";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
@@ -13,18 +14,6 @@ export default function App({ Component, pageProps }) {
   const {
     auth: { isUser },
   } = store.getState();
-
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     checkIsUserExist();
-  //   }, 200);
-  // }, []);
-
-  // const checkIsUserExist = () => {
-  //   if (isUser && router?.pathname === "/login") {
-  //     router.replace("/home");
-  //   }
-  // };
 
   return (
     <>
@@ -36,6 +25,7 @@ export default function App({ Component, pageProps }) {
             )
           ) : null}
           <Component {...pageProps} />;
+          <ToastContainer />
         </PersistGate>
       </Provider>
     </>

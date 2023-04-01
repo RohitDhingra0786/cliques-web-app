@@ -20,6 +20,21 @@ export const ChatWrapper = styled.section`
   padding: 10px;
   overflow-y: scroll;
   max-height: 70%;
+
+  .system-msg {
+    background-color: ${Colors.blueShadeGray};
+    background-color: #ADD8E6;
+    display: table;
+    max-width: 60%;
+    min-width: 100px;
+    margin: auto;
+    margin-bottom: 10px;
+    padding: 4px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    text-align: center;
+
+  }
 `;
 
 export const Form = styled.form`
@@ -73,6 +88,10 @@ export const MessageBox = styled.div`
   padding: 10px;
   background: transparent;
 
+  audio {
+    background: transparent;
+  }
+
   div {
     background: transparent;
   }
@@ -82,6 +101,7 @@ export const MessageBox = styled.div`
     align-items: flex-end;
     margin-bottom: 10px;
     background: transparent;
+    color: #000;
   }
   .msg:last-of-type {
     margin: 0;

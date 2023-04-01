@@ -9,14 +9,25 @@ import { loginInitialValues, loginSchema } from "./login-schema";
 import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
 import { setUser } from "redux/auth-reducer";
+import { login } from "services/auth";
+import { showError } from "utils";
 
 const LoginContainer = () => {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const onLogin = (e) => {
-    router.push("/home");
-    dispatch(setUser());
+  const onLogin = async ({ email, password }) => {
+    try {
+      const response = await login({ email, password });
+      console.log({ response });
+
+      if (response?.success === "false") {
+        showError(response?.msg?.[0]);
+      } else {
+        dispatch(setUser(response));
+        router.replace("/home");
+      }
+    } catch (error) {}
   };
 
   return (
@@ -45,6 +56,7 @@ const LoginContainer = () => {
             isSubmitting,
             /* and other goodies */
           }) => {
+            console.log({ values });
             return (
               <Form onSubmit={handleSubmit}>
                 <TextInput

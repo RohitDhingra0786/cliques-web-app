@@ -21,6 +21,8 @@ export default function Home() {
   const checkIsUserExist = () => {
     if (isUser) {
       router.replace("/home");
+    } else {
+      router.replace("/login");
     }
   };
 

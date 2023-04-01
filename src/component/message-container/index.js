@@ -1,16 +1,21 @@
-import useMessages from "hooks/use-messages";
+import Loader from "component/common/Loader";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import styled from "styled-components";
 import ListContainer from "./list-container";
-import MessageDetail from "./message-detail";
+
+const MessageDetail = dynamic(() => import("./message-detail"), {
+  loading: () => <p>Loading...</p>,
+});
 
 const MessageContainer = () => {
-  const [selectedChat, setSelectedChat] = useState(null);
+  // const [selectedChat, setSelectedChat] = useState(null);
 
   return (
     <Container>
-      <ListContainer setSelectedChat={setSelectedChat} />
-      {selectedChat ? <MessageDetail data={selectedChat} /> : null}
+      <ListContainer />
+
+      <MessageDetail />
     </Container>
   );
 };

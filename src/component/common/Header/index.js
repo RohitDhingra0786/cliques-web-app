@@ -1,15 +1,17 @@
 import Image from "next/image";
-const { default: styled } = require("styled-components");
-const { Colors } = require("theme/colors");
+import { Colors } from "theme/colors";
 import UserImg from "assets/images/user.png";
 import { useState } from "react";
-
-const userArr = [
-  { name: "Rohit", email: "rohit@mailiator.com" },
-  { name: "Dalbir", email: "dalbir@mailiator.com" },
-];
+import { useDispatch, useSelector } from "react-redux";
+import styled from "styled-components";
+import { setSelectedUser } from "redux/auth-reducer";
 
 const Header = ({ title }) => {
+  const dispatch = useDispatch();
+  const { usersList, user_id, selectedUser } = useSelector(
+    (state) => state.auth
+  );
+
   const [isActive, setActive] = useState(false);
 
   const onClickOutsideListener = () => {
@@ -24,15 +26,30 @@ const Header = ({ title }) => {
       }}
     >
       <Title>{title}</Title>
-      <NameLetter onClick={() => setActive(!isActive)}>R</NameLetter>
+      <NameLetter onClick={() => setActive(!isActive)}>
+        {selectedUser?.user_name?.charAt(0)?.toUpperCase()}
+      </NameLetter>
       <Overlay isActive={isActive}>
-        {userArr.map((e, i) => (
-          <Item key={i}>
+        {usersList?.map((e, i) => (
+          <Item
+            onClick={() => {
+              dispatch(setSelectedUser(e));
+              setActive(false);
+            }}
+            className={user_id === e?.user_id ? "selected-container" : ""}
+            key={i}
+          >
             <ImageConatiner>
-              <Image height={25} width={25} src={UserImg} alt="user" />
+              <Image
+                height={25}
+                width={25}
+                src={e?.user_image || UserImg}
+                alt="user"
+                style={{ borderRadius: 20 }}
+              />
             </ImageConatiner>
             <Info>
-              <Name>{e.name}</Name>
+              <Name>{e.user_name}</Name>
               <Email>{e.email}</Email>
             </Info>
           </Item>
@@ -92,11 +109,18 @@ const Overlay = styled.div`
   color: black;
   box-shadow: 0 3px 3px rgb(0 0 0 / 0.2);
   border: 4px solid ${Colors.gray};
-  max-height: 20%;
+  min-height: 150px;
+  max-height: 40%;
   padding: 10px 5px;
   opacity: ${(props) => (props.isActive ? "1" : "0")};
   @media only screen and (max-width: 768px) {
     width: 50%;
+  }
+  overflow-y: scroll;
+
+  .selected-container {
+    border-radius: 5px;
+    background-color: ${Colors.gray};
   }
 `;
 
@@ -105,6 +129,8 @@ const Item = styled.div`
   padding: 10px;
   flex-direction: row;
   cursor: pointer;
+  margin: 4px 0;
+
   :hover {
     border-radius: 5px;
     background-color: ${Colors.gray};

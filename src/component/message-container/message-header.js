@@ -3,14 +3,20 @@ import styled from "styled-components";
 import UserImg from "assets/images/user.png";
 import { BiDotsVerticalRounded } from "react-icons/bi";
 
-const MessageHeader = () => {
+const MessageHeader = ({ title, details }) => {
   return (
     <Header>
       <Image src={UserImg} height={50} width={50} />
       <div className="right-container">
         <div className="name-container">
-          <span>Rohit</span>
-          <span className="active-text">Inactive</span>
+          <span>{title}</span>
+          {details?.type === "group" ? (
+            <span className="active-text">
+              {details?.membersList?.length} members
+            </span>
+          ) : (
+            <span className="active-text">Inactive</span>
+          )}
         </div>
         <BiDotsVerticalRounded
           size={30}

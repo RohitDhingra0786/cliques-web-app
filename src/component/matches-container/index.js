@@ -3,6 +3,13 @@ import Select from "react-select";
 import styled from "styled-components";
 import { BiDotsVerticalRounded } from "react-icons/bi";
 import { HiOutlineChatBubbleOvalLeftEllipsis } from "react-icons/hi2";
+import { useEffect } from "react";
+import { getUserMatches } from "services/auth";
+import { useSelector } from "react-redux";
+import { getImageUrl } from "utils";
+import Loader from "component/common/Loader";
+import NoMatchIcon from "assets/images/noMatches.png";
+import Image from "next/image";
 
 const options = [
   { value: "all", label: "All" },
@@ -11,22 +18,84 @@ const options = [
 ];
 
 const MatchesContainer = () => {
+  const { user_id } = useSelector((state) => state.auth);
+
+  //
+  const [arrHolder, setArrHolder] = useState([]);
   const [selectedValue, setSelectedValue] = useState("all");
+  const [matchedArr, setMatchedArr] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    getMatches();
+  }, [user_id]);
+
+  const getMatches = async () => {
+    setLoading(true);
+    try {
+      // const response = await getUserMatches(user_id);
+      const response = await getUserMatches(125888);
+      setSelectedValue("all");
+
+      if (response.success === "true") {
+        setMatchedArr(
+          Array.isArray(response?.matched_arr) ? response?.matched_arr : []
+        );
+        setArrHolder(
+          Array.isArray(response?.matched_arr) ? response?.matched_arr : []
+        );
+      } else {
+        setMatchedArr([]);
+        setArrHolder([]);
+      }
+
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+    }
+  };
+
+  const onValueChange = (key) => {
+    let filterData = Array.from(arrHolder).filter((e) => e.type === key);
+    setMatchedArr(key === "all" ? arrHolder : filterData);
+  };
+
+  console.log({ matchedArr });
+
+  if (loading) {
+    return <Loader isVisible={loading} />;
+  }
 
   return (
     <Container>
-      <Select
-        value={selectedValue}
-        className="dropdown"
-        options={options}
-        onChange={({ value }) => setSelectedValue(value)}
-      />
+      {!matchedArr?.length ? (
+        <Empty>
+          <Image priority={true} alt="empty-match" src={NoMatchIcon} />
+          <span>You don't have any new Matches!</span>
+        </Empty>
+      ) : (
+        <Select
+          styles={{
+            option: (baseStyles, state) => ({
+              ...baseStyles,
+              color: state?.isSelected ? "#fff" : "#000",
+            }),
+          }}
+          value={Array.from(options).filter((e) => e.value === selectedValue)}
+          className="dropdown"
+          options={options}
+          onChange={({ value }) => {
+            setSelectedValue(value);
+            onValueChange(value);
+          }}
+        />
+      )}
 
       <List>
-        {[1, 2, 3, 4, 5, 6, 7, 8, 92, 23, 4, 2, 3, 4, 5].map((e, i) => (
-          <Card key={i}>
+        {matchedArr.map((e, i) => (
+          <Card key={i} url={getImageUrl(e?.user_image)}>
             <InfoContainer>
-              Rohit{" "}
+              {e?.user_name}{" "}
               <BiDotsVerticalRounded
                 size={20}
                 style={{ background: "transparent" }}
@@ -71,11 +140,13 @@ const Card = styled.div`
   flex-direction: column;
   padding: 10px;
   margin-bottom: 0px;
-  min-height: 200px;
+  max-height: 250px;
   @media only screen and (max-width: 768px) {
     width: 70%;
     min-height: 300px;
   }
+
+  background: ${(props) => `url(${props.url})`};
 `;
 
 const InfoContainer = styled.div`
@@ -86,7 +157,7 @@ const InfoContainer = styled.div`
 `;
 
 const ChatButton = styled.button`
-  background-image: linear-gradient(to  right,#a46aeb, #4ab1e7);
+  background-image: linear-gradient(to right, #a46aeb, #4ab1e7);
   margin-top: 10px;
   height: 35px;
   width: 60%;
@@ -113,4 +184,27 @@ const List = styled.div`
     margin-bottom: 50px;
   }
   overflow-y: scroll;
+`;
+
+const Empty = styled.div`
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  flex-direction: column;
+
+  img {
+    height: 50%;
+    width: 50%;
+    object-fit: contain;
+    transform: rotate(-8deg);
+  }
+
+  span {
+    color: #000;
+    margin-top: 10px;
+    text-align: center;
+  }
 `;
