@@ -22,6 +22,7 @@ import {
 import {
   chatRoomIdUpdate,
   getJsonSearch,
+  getSingleUser,
   SendUserMessage,
   SendUserMessageGroup,
   snapshotToArray,
@@ -54,14 +55,19 @@ const MessageDetail = ({}) => {
   const fileRef = useRef();
 
   useEffect(() => {
+    console.log("hi hello", user_id, data?.details?.user_id);
+
     const url =
       data?.details?.type == "group"
         ? `/message/${data?.details?.group_id}`
         : `/message/u_${user_id}__u_${data?.details?.user_id}`;
 
+    console.log("url>>>", url);
+
     const recentMessages = query(ref(db, url), limitToLast(messageLimit));
 
     onValue(recentMessages, (snapshot) => {
+      console.log("message converation.", snapshot.val());
       dispatch(
         setCurrentConversationList(snapshot.exists() ? snapshot.val() : {})
       );
@@ -84,7 +90,7 @@ const MessageDetail = ({}) => {
       (x) => x.user_id == other_user_id
     );
 
-    if (user_data_other >= 0) {
+    if (user_data_other > -1) {
       var jsonDataInbox = inboxList[user_data_other];
       var blockUser = jsonDataInbox.myInbox;
       if (blockUser != undefined) {
@@ -95,13 +101,18 @@ const MessageDetail = ({}) => {
         }
       }
     }
-    const isUserExists = allUserList.findIndex(
-      (i) => i.user_id == other_user_id
-    );
-    room_id = allUserList[isUserExists]?.chat_room_id || "no";
-    message_notification =
-      allUserList[isUserExists]?.message_notification || false;
-    if (isUserExists > -1) {
+
+    console.log({ jsonDataInbox });
+
+    const isUserExists = await getSingleUser("u_" + other_user_id);
+
+    // const isUserExists = allUserList.findIndex(
+    //   (i) => i.user_id == other_user_id
+    // );
+
+    room_id = isUserExists?.chat_room_id || "no";
+    message_notification = isUserExists?.message_notification || false;
+    if (isUserExists) {
       onUserNotExists(
         other_user_id,
         user_id,
@@ -426,6 +437,8 @@ const MessageDetail = ({}) => {
   };
 
   console.log({ conversationList });
+
+  console.log({ details });
 
   return (
     <Container>

@@ -23,7 +23,7 @@ export const ChatWrapper = styled.section`
 
   .system-msg {
     background-color: ${Colors.blueShadeGray};
-    background-color: #ADD8E6;
+    background-color: #add8e6;
     display: table;
     max-width: 60%;
     min-width: 100px;
@@ -33,7 +33,6 @@ export const ChatWrapper = styled.section`
     border-radius: 5px;
     font-size: 12px;
     text-align: center;
-
   }
 `;
 

@@ -1,5 +1,5 @@
 import { client } from "services";
-import { onValue, push, ref, update } from "firebase/database";
+import { child, get, onValue, push, ref, update } from "firebase/database";
 import { db } from "hoc/firebase";
 import { setAllUserList } from "redux/message-reducer";
 import store from "redux/store";
@@ -210,12 +210,17 @@ export const msg_update_read_status = (
             if (msg_read_status == 2 || msg_read_status == 1) {
               // console.log('msg_read_status :: ', msg_read_status);
               // console.log('senderId :: ', senderId);
-              var user_data_me = FirebaseUserJson.findIndex(
-                (x) => x.user_id == user_id
-              );
 
-              if (user_data_me != -1) {
-                var userDataMe = FirebaseUserJson[user_data_me];
+              var user_data_me = null;
+              getSingleUser("u_" + user_id).then((res) => {
+                user_data_me = res;
+              });
+              // var user_data_me = FirebaseUserJson.findIndex(
+              //   (x) => x.user_id == user_id
+              // );
+
+              if (user_data_me) {
+                var userDataMe = user_data_me;
                 const onlineStatus = userDataMe.onlineStatus;
                 const chat_room_id = userDataMe.chat_room_id;
 
@@ -605,3 +610,31 @@ function CreateGroupMembers(id, jsonUserData) {
       console.log("Update Inbox failed: " + error.message);
     });
 }
+
+export const getSingleUser = (user_id) => {
+  return new Promise((resolve, reject) => {
+    get(child(ref(db), `users/${user_id}`))
+      .then((snapshot) => {
+        resolve(snapshot.val());
+      })
+      .catch((error) => {
+        console.error("signle user error", error);
+        reject();
+      });
+  });
+
+  // let userData = {};
+  // get(child(ref(db), `users/${user_id}`))
+  //   .then((snapshot) => {
+  //     if (snapshot.exists()) {
+  //       console.log("getSingleUser", snapshot.val());
+  //       userData = snapshot.val();
+  //     } else {
+  //       console.log("No data available");
+  //     }
+  //   })
+  //   .catch((error) => {
+  //     console.error(error);
+  //     return null;
+  //   });
+};

@@ -15,8 +15,6 @@ const Messages = ({ list, details }) => {
   const { user_id } = useSelector((state) => state.auth);
   const { messageLimit } = useSelector((state) => state.message);
 
-  console.log({ messageLimit });
-
   useEffect(() => {
     const element = document.querySelector(".scroll-top");
     setTimeout(() => {
@@ -54,7 +52,11 @@ const Messages = ({ list, details }) => {
     >
       {list.map((item, i) => {
         if (item?.senderId === 0)
-          return <div className="system-msg">{item.message}</div>;
+          return (
+            <div key={i} className="system-msg">
+              {item.message}
+            </div>
+          );
         return (
           <MessageBox key={i}>
             <div

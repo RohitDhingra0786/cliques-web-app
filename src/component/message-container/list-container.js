@@ -27,6 +27,11 @@ const ListContainer = ({}) => {
   console.log("inboxList", inboxList);
 
   const onCardPress = (item) => {
+    chatRoomIdUpdate(
+      user_id,
+      item?.type == "group" ? item?.group_id : item?.user_id
+    );
+
     dispatch(setSelectedChat({ details: item, other_user_id: item?.user_id }));
 
     dispatch(setCurrentConversationList([]));
@@ -39,11 +44,6 @@ const ListContainer = ({}) => {
         count: 0,
       });
     }
-
-    chatRoomIdUpdate(
-      user_id,
-      item?.type == "group" ? item?.group_id : item?.user_id
-    );
   };
 
   const onPressChat = (detail) => {
