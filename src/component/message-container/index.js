@@ -1,21 +1,25 @@
-import Loader from "component/common/Loader";
 import dynamic from "next/dynamic";
-import { useState } from "react";
 import styled from "styled-components";
 import ListContainer from "./list-container";
+import useMediaQuery from "hooks/use-mediaQuery";
+import { useSelector } from "react-redux";
 
 const MessageDetail = dynamic(() => import("./message-detail"), {
   loading: () => <p>Loading...</p>,
 });
 
 const MessageContainer = () => {
-  // const [selectedChat, setSelectedChat] = useState(null);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const { selectedChat } = useSelector((state) => state.message);
 
   return (
     <Container>
-      <ListContainer />
+      {(isMobile && !selectedChat?.details) || isDesktop ? (
+        <ListContainer />
+      ) : null}
 
-      <MessageDetail />
+      {selectedChat?.details ? <MessageDetail /> : null}
     </Container>
   );
 };
@@ -25,6 +29,10 @@ export default MessageContainer;
 const Container = styled.div`
   display: flex;
   flex-direction: row;
-  width: 100%;
   height: 100vh;
+  width: calc(100% - 120px);
+  margin-left: auto;
+  @media only screen and (max-width: 768px) {
+    width: 100%;
+  }
 `;

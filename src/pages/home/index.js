@@ -1,4 +1,3 @@
-import Header from "component/common/Header";
 import MatchesContainer from "component/matches-container";
 import useMessages from "hooks/use-messages";
 import { useEffect } from "react";
@@ -9,6 +8,8 @@ import { getotherUserInfo } from "services/auth";
 const Home = () => {
   const dispatch = useDispatch();
   const { user_id } = useSelector((state) => state.auth);
+  
+  const {} = useMessages();
 
   useEffect(() => {
     getuserInfo();
@@ -36,7 +37,6 @@ const Home = () => {
 
   return (
     <div className="dashboard-main">
-      <Header title={"Matches"} />
       <div className="dashboard-container">
         <MatchesContainer />
       </div>

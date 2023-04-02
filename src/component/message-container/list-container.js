@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import CreateIcon from "assets/images/edit.png";
 import Image from "next/image";
 import UserImg from "assets/images/user.png";
 import { Colors } from "theme/colors";
@@ -14,17 +13,15 @@ import {
 } from "services/message";
 import {
   setCurrentConversationList,
-  setMessageLimit,
   setSelectedChat,
 } from "redux/message-reducer";
+import ImageBox from "component/common/ImageBox";
 
 const ListContainer = ({}) => {
   const dispatch = useDispatch();
 
-  const { inboxList, allUserList } = useSelector((state) => state.message);
+  const { inboxList, selectedChat } = useSelector((state) => state.message);
   const { user_id } = useSelector((state) => state.auth);
-
-  console.log("inboxList", inboxList);
 
   const onCardPress = (item) => {
     chatRoomIdUpdate(
@@ -35,7 +32,7 @@ const ListContainer = ({}) => {
     dispatch(setSelectedChat({ details: item, other_user_id: item?.user_id }));
 
     dispatch(setCurrentConversationList([]));
-    dispatch(setMessageLimit(20));
+    // dispatch(setMessageLimit(20));
 
     if (item?.count > 0 && item?.type !== "group") {
       onPressChat(item);
@@ -52,7 +49,7 @@ const ListContainer = ({}) => {
     UpdateUserInboxMe(user_id_send, inbox_id_me, {
       count: 0,
     });
-    msg_update_read_status(user_id, detail?.user_id, allUserList);
+    msg_update_read_status(user_id, detail?.user_id);
   };
 
   const renderLastMsg = (e) => (
@@ -90,26 +87,23 @@ const ListContainer = ({}) => {
     </BottomDiv>
   );
 
-  const renderGroupImage = (info) => {
-    let list = info?.membersList || [];
-    list = list.filter((e) => e.image);
-
-    return <></>;
-  };
-
   return (
     <Container>
       <TopContainer>
         <h1 className="msg-heading">Messages</h1>
-        <Image alt="icon" src={CreateIcon} height={20} width={20} />
+        {/* <Image alt="icon" src={CreateIcon} height={20} width={20} /> */}
       </TopContainer>
 
       <div className="list-container">
         {inboxList?.map((e, i) => {
           return (
-            <Card onClick={() => onCardPress(e)} key={i}>
-              {e?.type == "group" && e.hasOwnProperty("groupIcon") ? (
-                <GroupIcon>{e?.name?.slice(0, 2)}</GroupIcon>
+            <Card
+              isActive={e?.tempId === selectedChat?.details?.tempId}
+              onClick={() => onCardPress(e)}
+              key={i}
+            >
+              {e?.type == "group" ? (
+                <GroupIcon>{e?.name?.slice(0, 2)?.toUpperCase()}</GroupIcon>
               ) : e?.type == "group" ? (
                 renderGroupImage(e)
               ) : (
@@ -125,9 +119,11 @@ const ListContainer = ({}) => {
               <div className="card-info">
                 <div className="info-div">
                   <label className="user-name">{e?.name}</label>
-                  <span className="time-text">
-                    {moment(e?.lastMsgTime).fromNow()}
-                  </span>
+                  {e?.lastMsgTime ? (
+                    <span className="time-text">
+                      {moment(e?.lastMsgTime).fromNow()}
+                    </span>
+                  ) : null}
                 </div>
                 {renderLastMsg(e)}
               </div>
@@ -142,14 +138,17 @@ const ListContainer = ({}) => {
 export default ListContainer;
 
 const Container = styled.div`
-  width: 25%;
   height: 100%;
-
   border-right: 1px solid #ddd;
+  width: 30%;
+
+  @media only screen and (max-width: 768px) {
+    width: 100%;
+  }
+
   .list-container {
     overflow-y: scroll;
     height: 90%;
-    padding: 0 25px;
     margin-top: 10px;
   }
 `;
@@ -167,31 +166,45 @@ const TopContainer = styled.div`
 
 const Card = styled.div`
   display: flex;
-  padding-bottom: 20px;
   border-bottom: 0.6px solid ${Colors.gray};
-  margin-bottom: 20px;
   cursor: pointer;
+  padding: 20px 25px;
+
+  background-color: ${(props) =>
+    props?.isActive ? "rgb(128, 128, 128, 0.1)" : "#fff"};
+
+  :last-of-type {
+    margin-bottom: 30px;
+  }
+
+  :hover {
+    background-color: rgb(128, 128, 128, 0.1);
+  }
 
   .card-info {
     display: block;
     width: 90%;
     padding-left: 15px;
     margin-top: 4px;
+    background-color: transparent;
   }
 
   .info-div {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    background-color: transparent;
   }
 
   .user-name {
     color: #000;
+    background-color: transparent;
   }
 
   .time-text {
     font-size: 12px;
     color: rgb(196, 196, 196);
+    background-color: transparent;
   }
 
   .last-msg {
@@ -199,6 +212,8 @@ const Card = styled.div`
     margin-top: 8px;
     font-weight: 400;
     color: #000;
+
+    background-color: transparent;
 
     * {
       margin-right: 5px;
@@ -211,6 +226,7 @@ const BottomDiv = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-top: 2px;
+  background-color: transparent;
 `;
 
 const Count = styled.div`
@@ -233,7 +249,7 @@ const GroupIcon = styled.div`
   justify-content: center;
   display: flex;
   align-items: center;
-  background-color: ${Colors.primary};
+  background-color: #017bfc;
   color: #fff;
   font-size: 12px;
 `;

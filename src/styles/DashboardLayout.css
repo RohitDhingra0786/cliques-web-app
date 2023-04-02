@@ -30,12 +30,13 @@
   background-color: #fbfbfb;
   width: 100%;
   height: calc(100vh - 80px);
-  padding: 15px;
 }
 
 .dropdown {
   width: 15%;
   float: right;
+  margin: 25px;
+  margin-bottom: 0px;
 }
 
 @media only screen and (max-width: 768px) {

@@ -5,11 +5,15 @@ import { BiDotsVerticalRounded } from "react-icons/bi";
 import { HiOutlineChatBubbleOvalLeftEllipsis } from "react-icons/hi2";
 import { useEffect } from "react";
 import { getUserMatches } from "services/auth";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { getImageUrl } from "utils";
 import Loader from "component/common/Loader";
 import NoMatchIcon from "assets/images/noMatches.png";
 import Image from "next/image";
+import Header from "component/common/Header";
+import { useRouter } from "next/router";
+import { setSelectedChat } from "redux/message-reducer";
+import { UpdateUserInboxMe, UpdateUserInboxOther } from "services/message";
 
 const options = [
   { value: "all", label: "All" },
@@ -18,7 +22,11 @@ const options = [
 ];
 
 const MatchesContainer = () => {
+  const router = useRouter();
+
+  const dispatch = useDispatch();
   const { user_id } = useSelector((state) => state.auth);
+  const { inboxList } = useSelector((state) => state.message);
 
   //
   const [arrHolder, setArrHolder] = useState([]);
@@ -66,8 +74,89 @@ const MatchesContainer = () => {
     return <Loader isVisible={loading} />;
   }
 
+  const onChat = (item) => {
+    const isAvailable = inboxList.findIndex(
+      (i) => i?.tempId == `u_${item?.other_user_id}`
+    );
+
+    if (isAvailable > -1) {
+      // navigate("Conversation", {
+      //   details: inboxList[isAvailable],
+      //   inboxList: inboxList,
+      // });
+
+      dispatch(
+        setSelectedChat({
+          details: inboxList[isAvailable],
+          other_user_id: item?.other_user_id,
+        })
+      );
+
+      router.push("/messages");
+    } else {
+      const user_id_send = "u_" + user_id;
+      const other_user_id = item?.other_user_id;
+      const other_user_id_send = "u_" + other_user_id;
+
+      const inbox_id_me = "u_" + other_user_id;
+      const inbox_id_other = "u_" + user_id;
+
+      var jsonUserDataMe = {
+        count: 0,
+        lastMessageType: "",
+        lastMsg: "",
+        type: "single",
+        user_id: other_user_id,
+        typing_status: "no",
+        block_status: "no",
+        match_status: "yes",
+        lastMsgTime: database.ServerValue.TIMESTAMP,
+      };
+
+      var jsonUserDataother = {
+        count: 0,
+        lastMessageType: "",
+        lastMsg: "",
+        type: "single",
+        user_id: user_id,
+        typing_status: "no",
+        block_status: "no",
+        match_status: "yes",
+        lastMsgTime: database.ServerValue.TIMESTAMP,
+      };
+      UpdateUserInboxMe(user_id_send, inbox_id_me, jsonUserDataMe);
+      UpdateUserInboxOther(
+        other_user_id_send,
+        inbox_id_other,
+        jsonUserDataother
+      );
+
+      setTimeout(() => {
+        navigateUser(item);
+      }, 2000);
+    }
+  };
+
+  const navigateUser = (item) => {
+    const updatedList = inboxList || [];
+    const _newUser = updatedList?.findIndex(
+      (i) => i?.tempId == `u_${item?.other_user_id}`
+    );
+    if (_newUser > -1) {
+      dispatch(
+        setSelectedChat({
+          details: updatedList[_newUser],
+          other_user_id: updatedList[_newUser]?.other_user_id,
+        })
+      );
+
+      router.push("/messages");
+    }
+  };
+
   return (
     <Container>
+      <Header title={"Matches"} />
       {!matchedArr?.length ? (
         <Empty>
           <Image priority={true} alt="empty-match" src={NoMatchIcon} />
@@ -79,6 +168,10 @@ const MatchesContainer = () => {
             option: (baseStyles, state) => ({
               ...baseStyles,
               color: state?.isSelected ? "#fff" : "#000",
+            }),
+            singleValue: (baseStyles, state) => ({
+              ...baseStyles,
+              zIndex: 1000,
             }),
           }}
           value={Array.from(options).filter((e) => e.value === selectedValue)}
@@ -94,6 +187,7 @@ const MatchesContainer = () => {
       <List>
         {matchedArr.map((e, i) => (
           <Card key={i} url={getImageUrl(e?.user_image)}>
+            <div className="layer"></div>
             <InfoContainer>
               {e?.user_name}{" "}
               <BiDotsVerticalRounded
@@ -102,7 +196,7 @@ const MatchesContainer = () => {
               />
             </InfoContainer>
 
-            <ChatButton>
+            <ChatButton onClick={() => onChat(e)}>
               <HiOutlineChatBubbleOvalLeftEllipsis
                 style={{ background: "transparent", marginRight: 5 }}
                 size={20}
@@ -121,32 +215,64 @@ export default MatchesContainer;
 const Container = styled.div`
   height: 100%;
   background-color: transparent;
-  width: calc(100% - 250px);
+  width: calc(100% - 120px);
   margin-left: auto;
 
   @media only screen and (max-width: 768px) {
     width: 100%;
   }
+  display: block;
+  position: relative;
+`;
+
+const List = styled.div`
+  padding-top: 20px;
+  display: flex;
+  flex-direction: row;
+  height: 90%;
+  width: 100%;
+  background-color: transparent;
+  flex-wrap: wrap;
+
+  > * {
+    margin-right: 2%;
+
+    @media only screen and (max-width: 768px) {
+      margin-right: 5%;
+    }
+  }
+  overflow-y: scroll;
+  padding: 25px;
 `;
 
 const Card = styled.div`
   width: 180px;
   border-radius: 5px;
   background-size: cover;
-  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-    url("https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8dXNlciUyMHByb2ZpbGV8ZW58MHx8MHx8&w=1000&q=80");
   justify-content: space-between;
   display: flex;
   flex-direction: column;
   padding: 10px;
-  margin-bottom: 0px;
-  max-height: 250px;
+  margin-bottom: 20px;
+  height: 200px;
+
   @media only screen and (max-width: 768px) {
-    width: 70%;
-    min-height: 300px;
+    width: 45%;
+    height: 250px;
   }
 
-  background: ${(props) => `url(${props.url})`};
+  background-image: ${(props) => (props?.url ? `url(${props.url})` : "")};
+  position: relative;
+  .layer {
+    background-color: rgba(0, 0, 0, 0.5);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    z-index: 10;
+  }
 `;
 
 const InfoContainer = styled.div`
@@ -154,6 +280,7 @@ const InfoContainer = styled.div`
   justify-content: space-between;
   background-color: transparent;
   color: white;
+  z-index: 20;
 `;
 
 const ChatButton = styled.button`
@@ -169,21 +296,7 @@ const ChatButton = styled.button`
   align-self: center;
   border: 0px;
   cursor: pointer;
-`;
-
-const List = styled.div`
-  padding-top: 20px;
-  display: flex;
-  flex-direction: row;
-  height: 100%;
-  width: 100%;
-  background-color: transparent;
-  flex-wrap: wrap;
-  > * {
-    margin-right: 5%;
-    margin-bottom: 50px;
-  }
-  overflow-y: scroll;
+  z-index: 20;
 `;
 
 const Empty = styled.div`

@@ -3,23 +3,18 @@ import { useRef } from "react";
 import ImageIcon from "assets/images/image.png";
 import Image from "next/image";
 import SendIcon from "assets/images/send.png";
-import { Container, FileIcon, Form, MessageBox } from "./styles";
+import { Container, FileIcon, Form, Notice } from "./styles";
 import Messages from "./messages";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  limitToLast,
-  query,
-  ref,
-  onValue,
-  serverTimestamp,
-} from "firebase/database";
+import { ref, onValue, serverTimestamp, get, child } from "firebase/database";
 import { db } from "hoc/firebase";
 import {
   setCurrentConversationList,
-  setMessageLimit,
+  setSelectedChat,
 } from "redux/message-reducer";
 import {
+  blockUnblockUser,
   chatRoomIdUpdate,
   getJsonSearch,
   getSingleUser,
@@ -31,6 +26,7 @@ import {
   uploadChatImage,
 } from "services/message";
 import { useState } from "react";
+import { RotatingLines } from "react-loader-spinner";
 
 const MessageDetail = ({}) => {
   const dispatch = useDispatch();
@@ -39,13 +35,14 @@ const MessageDetail = ({}) => {
     messageLimit,
     conversationList,
     inboxList,
-    allUserList,
     allGroupsList,
     selectedChat: data,
   } = useSelector((state) => state.message);
 
   //
   const [message, setMessage] = useState("");
+  const [isImageUpload, setImageUpload] = useState(false);
+  const [blocked, setBlocked] = useState(false);
 
   const chatDetails =
     inboxList?.filter((i) => i?.key == data?.details?.key)[0] || {};
@@ -55,24 +52,43 @@ const MessageDetail = ({}) => {
   const fileRef = useRef();
 
   useEffect(() => {
-    console.log("hi hello", user_id, data?.details?.user_id);
-
     const url =
       data?.details?.type == "group"
         ? `/message/${data?.details?.group_id}`
         : `/message/u_${user_id}__u_${data?.details?.user_id}`;
 
-    console.log("url>>>", url);
-
-    const recentMessages = query(ref(db, url), limitToLast(messageLimit));
+    // const recentMessages = query(ref(db, url), limitToLast(messageLimit));
+    const recentMessages = ref(db, url);
 
     onValue(recentMessages, (snapshot) => {
-      console.log("message converation.", snapshot.val());
       dispatch(
         setCurrentConversationList(snapshot.exists() ? snapshot.val() : {})
       );
     });
   }, [data, messageLimit]);
+
+  useEffect(() => {
+    let updateInbox = inboxList?.find((e) => e.key === details.key);
+
+    // if (updateInbox) {
+    //   dispatch(
+    //     setSelectedChat({
+    //       details: updateInbox,
+    //       other_user_id: updateInbox?.user_id,
+    //     })
+    //   );
+    // }
+  }, [inboxList]);
+
+  const checkBlockStatus = () => {
+    if (chatDetails?.myInbox?.[`u_${user_id}`]?.block_status == "yes") {
+      return true;
+    } else return false;
+  };
+
+  useEffect(() => {
+    setBlocked(checkBlockStatus());
+  }, [chatDetails]);
 
   const onPressSend = async (messageType, contain) => {
     // setMessageLoading(true);
@@ -102,13 +118,7 @@ const MessageDetail = ({}) => {
       }
     }
 
-    console.log({ jsonDataInbox });
-
     const isUserExists = await getSingleUser("u_" + other_user_id);
-
-    // const isUserExists = allUserList.findIndex(
-    //   (i) => i.user_id == other_user_id
-    // );
 
     room_id = isUserExists?.chat_room_id || "no";
     message_notification = isUserExists?.message_notification || false;
@@ -224,9 +234,13 @@ const MessageDetail = ({}) => {
     var chat_room_id = other_user_id;
     var count_new = 0;
 
-    onValue(
-      ref(db, "users/" + other_user_id_send + "/myInbox/" + inbox_id_other),
-      function (data) {
+    get(
+      child(
+        ref(db),
+        "users/" + other_user_id_send + "/myInbox/" + inbox_id_other
+      )
+    )
+      .then((data) => {
         var count_old = data.val()?.count || 0;
         count_new = parseInt(count_old) + 1;
 
@@ -240,10 +254,8 @@ const MessageDetail = ({}) => {
             lastMsgTime: serverTimestamp(),
           });
         }
-      },
-      { onlyOnce: true }
-    );
-    // setMessageLoading(false);
+      })
+      .catch((error) => {});
   };
 
   const rendetImageIcon = () => {
@@ -308,12 +320,12 @@ const MessageDetail = ({}) => {
   };
 
   const onPickImage = (e) => {
-    console.log("file", e.target.files[0]);
     const _image = e.target.files[0];
     uploadImageForChat(_image);
   };
 
   const uploadImageForChat = async (image) => {
+    setImageUpload(true);
     const request = new FormData();
     request.append("user_id", user_id);
     request.append("file_type", "image");
@@ -326,8 +338,9 @@ const MessageDetail = ({}) => {
         ? onSendGroupMessage("image", fileUrl)
         : onPressSend("image", fileUrl);
     } else {
-      // showError(response?.msg || strings.somethingWentWrong);
     }
+
+    setImageUpload(false);
   };
 
   const onSendGroupMessage = async (messageType, contain, isAdmin = 0) => {
@@ -367,24 +380,27 @@ const MessageDetail = ({}) => {
         var user_id_member = keyValue.user_id;
         var user_id_member_check = String(user_id_member);
         var user_id_me_check = String(user_id);
-        var user_data_me = allUserList.findIndex(
-          (x) => x.user_id == user_id_member
-        );
-        userArray = [...userArray, allUserList[user_data_me]];
-        if (user_data_me != -1) {
-          var chat_room_id = allUserList[user_data_me].chat_room_id;
-          if (chat_room_id == "no" || chat_room_id != group_id) {
-            // var query = database()
-            //   .ref("users/")
-            //   .child("u_" + user_id_member)
-            //   .child("/myInbox/");
+        // var user_data_me = allUserList.findIndex(
+        //   (x) => x.user_id == user_id_member
+        // );
 
-            var query = ref(db, "users/" + "u_" + user_id_member + "/myInbox/");
+        getSingleUser("u_" + user_id_member).then((user_data_me) => {
+          // user_data_me = res;
 
-            onValue(
-              query,
-              function (data) {
+          userArray = [...userArray, user_data_me];
+          if (user_data_me != -1) {
+            var chat_room_id = user_data_me?.chat_room_id;
+            if (chat_room_id == "no" || chat_room_id != group_id) {
+              // var query = database()
+              //   .ref("users/")
+              //   .child("u_" + user_id_member)
+              //   .child("/myInbox/");
+
+              get(
+                child(ref(db), "users/" + "u_" + user_id_member + "/myInbox/")
+              ).then((data) => {
                 var array_data = snapshotToArray(data);
+                console.log({ array_data });
                 var getCountData = getJsonSearch(
                   array_data,
                   "group_id",
@@ -414,73 +430,157 @@ const MessageDetail = ({}) => {
                     messageJson
                   );
                 }
-              },
-              { onlyOnce: true }
-            );
-          } else {
-            var messageJson = {
-              lastMsg: contain,
-              lastMsgType: messageType,
-              messageType: messageType,
-              lastMsgTime: serverTimestamp(),
-            };
-            console.log("messageJson : ", messageJson);
-            UpdateUserInboxMe(
-              "u_" + user_id_member,
-              details?.group_id,
-              messageJson
-            );
+              });
+
+              // onValue(
+              //   query,
+              //   function (data) {
+              //     var array_data = snapshotToArray(data);
+              //     var getCountData = getJsonSearch(
+              //       array_data,
+              //       "group_id",
+              //       group_id
+              //     );
+              //     if (getCountData.length > 0) {
+              //       var countData = getCountData[0];
+              //       if (countData.count != undefined) {
+              //         var count_old = countData.count;
+              //       } else {
+              //         var count_old = 0;
+              //       }
+
+              //       count_new = parseInt(count_old) + 1;
+
+              //       var messageJson = {
+              //         count: user_id_member == user_id ? 0 : count_new,
+              //         lastMsg: contain,
+              //         lastMsgType: messageType,
+              //         messageType: messageType,
+              //         lastMsgTime: serverTimestamp(),
+              //       };
+              //       console.log("messageJson true condition :: ", messageJson);
+              //       UpdateUserInboxMe(
+              //         "u_" + user_id_member,
+              //         group_id,
+              //         messageJson
+              //       );
+              //     }
+              //   },
+              //   { onlyOnce: true }
+              // );
+            } else {
+              var messageJson = {
+                lastMsg: contain,
+                lastMsgType: messageType,
+                messageType: messageType,
+                lastMsgTime: serverTimestamp(),
+              };
+
+              UpdateUserInboxMe(
+                "u_" + user_id_member,
+                details?.group_id,
+                messageJson
+              );
+            }
           }
-        }
+        });
       });
     }
   };
 
-  console.log({ conversationList });
+  const isUnMatched = () => {
+    if (
+      details?.myInbox?.[`u_${user_id}`]?.match_status == "no" ||
+      details?.matchStatus == "no" ||
+      details?.match_status == "no"
+    ) {
+      return true;
+    } else return false;
+  };
 
-  console.log({ details });
+  const handleBlockUnblockUser = () => {
+    blockUnblockUser(
+      user_id,
+      details?.user_id,
+      details?.block_status == "no" ? "yes" : "no"
+    );
+  };
 
   return (
     <Container>
       <MessageHeader
         details={details}
         title={chatDetails?.name || data?.details?.name || ""}
+        blocked={blocked}
       />
 
       <div className="wrapper">
         <Messages details={details} list={conversationList || []} />
-
         <div />
-        <Form
-          onSubmit={(e) => {
-            e.preventDefault();
-            details?.type === "group"
-              ? onSendGroupMessage("text", message)
-              : onPressSend("text", message);
-          }}
-        >
-          <div className="input-div">
-            <input
-              value={message}
-              placeholder="Your message..."
-              type={"text"}
-              onChange={(e) => setMessage(e.target.value)}
-            />
 
-            {rendetImageIcon()}
-          </div>
+        {details?.block_status == "yes" ||
+        isUnMatched() ||
+        blocked ||
+        details?.delete_flag == 1 ? (
+          <Notice
+            onClick={() => {
+              if (details?.match_status !== "no") {
+                handleBlockUnblockUser();
+              }
+            }}
+          >
+            {details?.delete_flag == 1
+              ? "Account Deleted"
+              : isUnMatched()
+              ? "Unmatch"
+              : blocked
+              ? "Blocked"
+              : "Unblock"}
+          </Notice>
+        ) : (
+          <Form
+            onSubmit={(e) => {
+              e.preventDefault();
+              details?.type === "group"
+                ? onSendGroupMessage("text", message)
+                : onPressSend("text", message);
+            }}
+          >
+            <div className="input-div">
+              <input
+                value={message}
+                placeholder="Your message..."
+                type={"text"}
+                onChange={(e) => setMessage(e.target.value)}
+              />
 
-          <button type="submit">
-            <Image
-              alt="send"
-              title="send"
-              src={SendIcon}
-              height={16}
-              width={16}
-            />
-          </button>
-        </Form>
+              {rendetImageIcon()}
+            </div>
+
+            <button disabled={!message} type="submit">
+              <Image
+                alt="send"
+                title="send"
+                src={SendIcon}
+                height={16}
+                width={16}
+              />
+            </button>
+          </Form>
+        )}
       </div>
+
+      {isImageUpload && (
+        <div className="loader-container">
+          <RotatingLines
+            strokeColor="grey"
+            strokeWidth="5"
+            animationDuration="0.75"
+            width={"55"}
+            visible={isImageUpload}
+          />
+        </div>
+      )}
     </Container>
   );
 };

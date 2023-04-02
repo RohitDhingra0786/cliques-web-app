@@ -68,8 +68,6 @@ const Container = styled.header`
   align-items: center;
   padding: 0 20px;
   justify-content: space-between;
-  width: calc(100% - 250px);
-  margin-left: auto;
 
   @media only screen and (max-width: 768px) {
     width: 100%;
@@ -100,7 +98,7 @@ const NameLetter = styled.button`
 
 const Overlay = styled.div`
   position: absolute;
-  z-index: ${(props) => (props.isActive ? "1000" : "0")};
+  z-index: ${(props) => (props.isActive ? "1001" : "0")};
   right: 30px;
   top: 60px;
   background-color: ${Colors.white};

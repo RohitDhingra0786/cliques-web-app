@@ -69,7 +69,7 @@ const messageSlice = createSlice({
 
       state.conversationList = list.sort(function (x, y) {
         return x.timestamp - y.timestamp;
-      });
+      }).reverse();
     },
     // Set UnView Message Count
     setUnviewMessageCount: (state, { payload }) => {

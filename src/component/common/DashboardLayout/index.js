@@ -16,24 +16,16 @@ const DashboardLayout = ({}) => {
   };
 
   return (
-    <>
-      <Menu
-        isOpen
-        noOverlay
-        disableOverlayClick
-        className="menu"
-        width={"250px"}
-      >
-        <Link className="menu-link active-menu" href="/home">
-          Home
-        </Link>
+    <Menu isOpen noOverlay disableOverlayClick className="menu" width={"250px"}>
+      <Link className="menu-link active-menu" href="/home">
+        Home
+      </Link>
 
-        <Link className="menu-link" href="/messages">
-          Messages
-        </Link>
-        <Logout onClick={handleLogout}>Logout</Logout>
-      </Menu>
-    </>
+      <Link className="menu-link" href="/messages">
+        Messages
+      </Link>
+      <Logout onClick={handleLogout}>Logout</Logout>
+    </Menu>
   );
 };
 

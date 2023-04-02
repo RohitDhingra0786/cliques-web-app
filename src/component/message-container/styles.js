@@ -3,7 +3,7 @@ import { Colors } from "theme/colors";
 
 export const Container = styled.div`
   width: 100%;
-  height: 100%;
+  height: calc(100% - 80px);
 
   .wrapper {
     display: flex;
@@ -12,6 +12,13 @@ export const Container = styled.div`
     justify-content: space-between;
     flex-direction: column;
   }
+
+  .loader-container {
+    position: absolute;
+    top: 45%;
+    left: 60%;
+    background: transparent;
+  }
 `;
 
 export const ChatWrapper = styled.section`
@@ -19,7 +26,14 @@ export const ChatWrapper = styled.section`
   width: 100%;
   padding: 10px;
   overflow-y: scroll;
-  max-height: 70%;
+  max-height: 78%;
+
+  display: flex; /* added */
+  flex-flow: column-reverse;
+
+  /* display: flex;
+  flex-direction: column-reverse; */
+  /* transform: scale(1, -1); */
 
   .system-msg {
     background-color: ${Colors.blueShadeGray};
@@ -37,10 +51,11 @@ export const ChatWrapper = styled.section`
 `;
 
 export const Form = styled.form`
-  height: 200px;
+  height: 120px;
   background-color: white;
   display: flex;
   justify-content: center;
+  align-items: center;
 
   button {
     height: 40px;
@@ -48,7 +63,6 @@ export const Form = styled.form`
     border-radius: 20px;
     border: 0px;
     background-color: ${Colors.primary};
-    margin-top: 45px;
     margin-left: 20px;
     display: flex;
     justify-content: center;
@@ -61,7 +75,6 @@ export const Form = styled.form`
     width: 80%;
     background-color: rgb(246, 246, 246);
     border-radius: 10px;
-    margin-top: 40px;
     padding: 0 20px;
     display: flex;
   }
@@ -87,8 +100,24 @@ export const MessageBox = styled.div`
   padding: 10px;
   background: transparent;
 
+  .seen-text {
+    background: transparent;
+    margin-top: 5px;
+    color: #7777;
+    font-size: 11px;
+    text-align: right;
+    right: 3px;
+    position: relative;
+  }
+  .outer-div {
+    display: flex;
+    flex-direction: column;
+    max-width: 60%;
+  }
+
   audio {
     background: transparent;
+    margin-top: 5px;
   }
 
   div {
@@ -107,9 +136,9 @@ export const MessageBox = styled.div`
   }
 
   .msg-bubble {
-    max-width: 60%;
-    padding: 15px;
-    border-radius: 15px;
+    /* max-width: 60%; */
+    padding: 6px 10px;
+    border-radius: 10px;
     background: rgb(240, 240, 240);
   }
 
@@ -122,9 +151,14 @@ export const MessageBox = styled.div`
   .msg-info-name {
     margin-right: 10px;
     font-weight: bold;
+    font-size: 12px;
+    margin-top: 5px;
   }
   .msg-info-time {
-    font-size: 0.85em;
+    font-size: 10px;
+    margin-top: 5px;
+    text-align: right;
+    color: #707070;
   }
 
   .left-msg .msg-bubble {
@@ -135,11 +169,20 @@ export const MessageBox = styled.div`
     flex-direction: row-reverse;
   }
   .right-msg .msg-bubble {
-    background: ${Colors.primary};
-    color: #fff;
+    color: #000;
     border-bottom-right-radius: 0;
+    background-image: linear-gradient(to right, #f2e9fd, #d9f2ff);
   }
   .right-msg .msg-img {
     margin: 0 0 0 10px;
   }
+`;
+
+export const Notice = styled.div`
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: red;
+  cursor: pointer;
 `;

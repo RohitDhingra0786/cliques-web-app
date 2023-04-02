@@ -6,6 +6,7 @@ import styles from "styles/Home.module.css";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
 import useMessages from "hooks/use-messages";
+import Loader from "component/common/Loader";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,7 +36,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
-        <div className={styles.description}>
+        <Loader />
+        {/* <div className={styles.description}>
           <p>
             Get started by editing&nbsp;
             <code className={styles.code}>src/pages/index.js</code>
@@ -136,7 +138,7 @@ export default function Home() {
               with&nbsp;Vercel.
             </p>
           </a>
-        </div>
+        </div> */}
       </main>
     </>
   );

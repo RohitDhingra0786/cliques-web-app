@@ -7,6 +7,8 @@ import UserImg from "assets/images/user.png";
 import { useRef } from "react";
 import { useEffect } from "react";
 import { setMessageLimit } from "redux/message-reducer";
+import { randomColors } from "theme/colors";
+import { useState } from "react";
 
 const Messages = ({ list, details }) => {
   const messagesRef = useRef();
@@ -15,19 +17,28 @@ const Messages = ({ list, details }) => {
   const { user_id } = useSelector((state) => state.auth);
   const { messageLimit } = useSelector((state) => state.message);
 
+  const [loader, setLoader] = useState(false);
+
+  useEffect(() => {
+    setLoader(true);
+    setTimeout(() => {
+      setLoader(false);
+    }, 500);
+  }, [details]);
+
   useEffect(() => {
     const element = document.querySelector(".scroll-top");
     setTimeout(() => {
       const domNode = messagesRef.current;
 
-      if (domNode) {
+      if (domNode && element?.scrollHeight) {
         domNode?.scrollTo({
           top: element.scrollHeight,
           behavior: "smooth",
         });
       }
     }, 500);
-  }, [details]);
+  }, [list]);
 
   const getImage = (val) => {
     let userObj = details.membersList.find((e) => e.user_id === val.senderId);
@@ -44,6 +55,8 @@ const Messages = ({ list, details }) => {
     }
   };
 
+  if (loader) return <></>;
+
   return (
     <ChatWrapper
       onScroll={handleScroll}
@@ -51,6 +64,8 @@ const Messages = ({ list, details }) => {
       ref={messagesRef}
     >
       {list.map((item, i) => {
+        let myMsg = item?.senderId === user_id;
+
         if (item?.senderId === 0)
           return (
             <div key={i} className="system-msg">
@@ -74,37 +89,57 @@ const Messages = ({ list, details }) => {
                   src={getImage(item)}
                 />
               ) : null}
+              <div className="outer-div">
+                {!myMsg ? (
+                  <div className="msg-info">
+                    <div
+                      style={{
+                        color:
+                          randomColors[
+                            Math.floor(Math.random() * randomColors.length)
+                          ],
+                      }}
+                      className="msg-info-name"
+                    >
+                      {item?.name}
+                    </div>
+                  </div>
+                ) : null}
 
-              <div class="msg-bubble">
-                <div class="msg-info">
-                  <div class="msg-info-name">{item?.name}</div>
-                  <div class="msg-info-time">
+                <div className="msg-bubble">
+                  {item?.messageType === "audio" ? (
+                    <audio controls src={getAudioUrl(item?.message)} />
+                  ) : item?.messageType === "gif" ? (
+                    <Image
+                      title="gif"
+                      alt="gif"
+                      width={200}
+                      height={200}
+                      src={item?.message}
+                      style={{ borderRadius: 5, marginTop: 5 }}
+                    />
+                  ) : item?.messageType === "image" ? (
+                    <a href={getImageUrl(item?.message)} target="_blank">
+                      <Image
+                        title="user-icon"
+                        alt="user-icon"
+                        width={200}
+                        height={200}
+                        src={getImageUrl(item?.message)}
+                        style={{ borderRadius: 5, marginTop: 5 }}
+                      />
+                    </a>
+                  ) : (
+                    <div className="msg-text">{item?.message}</div>
+                  )}
+
+                  <div className="msg-info-time">
                     {moment(item?.timestamp).format("hh:mm A")}
                   </div>
                 </div>
 
-                {item?.messageType === "audio" ? (
-                  <audio controls src={getAudioUrl(item?.message)} />
-                ) : item?.messageType === "gif" ? (
-                  <Image
-                    title="gif"
-                    alt="gif"
-                    width={200}
-                    height={200}
-                    src={item?.message}
-                    style={{ borderRadius: 5 }}
-                  />
-                ) : item?.messageType === "image" ? (
-                  <Image
-                    title="user-icon"
-                    alt="user-icon"
-                    width={200}
-                    height={200}
-                    src={getImageUrl(item?.message)}
-                    style={{ borderRadius: 5 }}
-                  />
-                ) : (
-                  <div class="msg-text">{item?.message}</div>
+                {myMsg && item?.read_status === 3 && (
+                  <span className="seen-text">Seen</span>
                 )}
               </div>
             </div>

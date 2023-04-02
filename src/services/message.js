@@ -1,5 +1,13 @@
 import { client } from "services";
-import { child, get, onValue, push, ref, update } from "firebase/database";
+import {
+  child,
+  get,
+  onValue,
+  push,
+  ref,
+  update,
+  remove,
+} from "firebase/database";
 import { db } from "hoc/firebase";
 import { setAllUserList } from "redux/message-reducer";
 import store from "redux/store";
@@ -118,10 +126,9 @@ export const getJsonSearch = (obj, key, val) => {
 
 export const clearChatSingle = (user_id, other_user_id) => {
   const messageIdME = "u_" + user_id + "__u_" + other_user_id;
-  database()
-    .ref()
-    .child("message" + "/" + messageIdME + "/")
-    .remove();
+
+  remove(ref(db, "message" + "/" + messageIdME + "/"));
+
   const jsonUserDataMe = {
     count: 0,
     lastMessageType: "",
@@ -139,16 +146,24 @@ export const blockUnblockUser = (user_id, other_user_id, status) => {
   const user_id_send = "u_" + user_id;
   const inbox_id_me = "u_" + other_user_id;
 
-  database()
-    .ref(`/users/u_${other_user_id}`)
-    .once("value")
-    .then((snapshot) => {
-      if (snapshot.exists()) {
-        UpdateUserInboxMe(user_id_send, inbox_id_me, {
-          block_status: status,
-        });
-      }
-    });
+  getSingleUser(`u_${other_user_id}`).then((res) => {
+    if (res) {
+      UpdateUserInboxMe(user_id_send, inbox_id_me, {
+        block_status: status,
+      });
+    }
+  });
+
+  // database()
+  //   .ref(`/users/u_${other_user_id}`)
+  //   .once("value")
+  //   .then((snapshot) => {
+  //     if (snapshot.exists()) {
+  //       UpdateUserInboxMe(user_id_send, inbox_id_me, {
+  //         block_status: status,
+  //       });
+  //     }
+  //   });
 };
 
 export const deleteChatConfirm = (user_id, other_user_id, type, detail) => {
@@ -211,26 +226,26 @@ export const msg_update_read_status = (
               // console.log('msg_read_status :: ', msg_read_status);
               // console.log('senderId :: ', senderId);
 
-              var user_data_me = null;
-              getSingleUser("u_" + user_id).then((res) => {
-                user_data_me = res;
+              // var user_data_me = null;
+              getSingleUser("u_" + user_id).then((user_data_me) => {
+                // user_data_me = res;
+
+                if (user_data_me) {
+                  var userDataMe = user_data_me;
+                  const onlineStatus = userDataMe.onlineStatus;
+                  const chat_room_id = userDataMe.chat_room_id;
+
+                  // if (chat_room_id != 'no') {
+                  //   if (chat_room_id == other_user_id) {
+                  console.log("condition true");
+                  markDubleClickRead(userChatId, key_value);
+                  //   }
+                  // }
+                }
               });
               // var user_data_me = FirebaseUserJson.findIndex(
               //   (x) => x.user_id == user_id
               // );
-
-              if (user_data_me) {
-                var userDataMe = user_data_me;
-                const onlineStatus = userDataMe.onlineStatus;
-                const chat_room_id = userDataMe.chat_room_id;
-
-                // if (chat_room_id != 'no') {
-                //   if (chat_room_id == other_user_id) {
-                console.log("condition true");
-                markDubleClickRead(userChatId, key_value);
-                //   }
-                // }
-              }
             }
           }
         });
@@ -551,13 +566,17 @@ export const leftGroup = (group_id, user_id) => {
   var member_id_send = "u_" + user_id;
   var group_id_send = group_id;
 
-  database()
-    .ref("users/" + member_id_send + "/myInbox/" + group_id_send)
-    .remove();
+  // database()
+  //   .ref("users/" + member_id_send + "/myInbox/" + group_id_send)
+  //   .remove();
 
-  database()
-    .ref("groups/" + group_id_send + "/members/" + member_id_send)
-    .remove();
+  remove(ref(db, "users/" + member_id_send + "/myInbox/" + group_id_send));
+
+  // database()
+  //   .ref("groups/" + group_id_send + "/members/" + member_id_send)
+  //   .remove();
+
+  remove(ref(db, "groups/" + group_id_send + "/members/" + member_id_send));
 
   chatRoomIdUpdate(user_id, "no");
 };
